@@ -82,7 +82,7 @@ def main_app():
         display_rewards()
 
     with tab3:
-        display_analytics()
+        display_analytics(supabase, st.session_state.user.id)
 
     st.markdown("""
     <footer>

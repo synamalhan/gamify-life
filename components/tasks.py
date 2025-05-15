@@ -60,7 +60,14 @@ def display_tasks():
 
     # Filter and sort tasks by due_date ascending (only undone tasks)
     undone_tasks = [t for t in st.session_state.tasks if not t["done"]]
-    undone_tasks.sort(key=lambda x: x["due_date"] or datetime.max.date())
+
+    # Convert due_date from string to date (if it's not None)
+    for task in undone_tasks:
+        if task["due_date"]:
+            if isinstance(task["due_date"], str):
+                task["due_date"] = datetime.strptime(task["due_date"], "%Y-%m-%d").date()
+
+    undone_tasks.sort(key=lambda x: x["due_date"] or date.max)
 
     data = []
     for i, task in enumerate(undone_tasks):

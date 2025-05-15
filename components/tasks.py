@@ -12,26 +12,19 @@ def init_task_state():
 def calculate_level(xp):
     return xp // 100 + 1
 
-def add_task(name, category, subcategories, level):
+from datetime import datetime
+
+def add_task(name, category, subcategories, level, due_date):
     task = {
         "name": name,
         "category": category,
         "subcategories": subcategories,
         "level": level,
         "xp": LEVELS_XP[level],
-        "done": False
+        "done": False,
+        "due_date": due_date,  # store the date here (datetime.date)
     }
     st.session_state.tasks.append(task)
-
-def mark_done(idx):
-    if not st.session_state.tasks[idx]["done"]:
-        st.session_state.tasks[idx]["done"] = True
-        gained_xp = st.session_state.tasks[idx]["xp"]
-        st.session_state.xp += gained_xp
-        st.session_state.coins += gained_xp // 10
-        st.success(f"Task completed! You gained {gained_xp} XP and earned {gained_xp // 10} coins!")
-
-import pandas as pd
 
 def display_tasks():
     st.header(f"Your Tasks - Level {calculate_level(st.session_state.xp)} | XP: {st.session_state.xp} | Coins: {st.session_state.coins} 🪙")
@@ -40,18 +33,22 @@ def display_tasks():
         st.info("No tasks added yet! Use the sidebar to add some.")
         return
 
+    # Filter and sort tasks by due_date ascending (only undone tasks)
+    undone_tasks = [t for t in st.session_state.tasks if not t["done"]]
+    undone_tasks.sort(key=lambda x: x["due_date"] or datetime.max.date())
+
     data = []
-    for i, task in enumerate(st.session_state.tasks):
-        if not task["done"]:
-            data.append({
-                "Task Name": task["name"],
-                "Category": task["category"].title(),
-                "Subcategories": ", ".join(task["subcategories"]),
-                "Level": task["level"].capitalize(),
-                "XP": task["xp"],
-                "Done": task["done"],
-                "_idx": i
-            })
+    for i, task in enumerate(undone_tasks):
+        data.append({
+            "Task Name": task["name"],
+            "Category": task["category"].title(),
+            "Subcategories": ", ".join(task["subcategories"]),
+            "Level": task["level"].capitalize(),
+            "XP": task["xp"],
+            "Due Date": task["due_date"].strftime("%Y-%m-%d") if task["due_date"] else "No due date",
+            "Done": task["done"],
+            "_idx": st.session_state.tasks.index(task)  # map back to original index
+        })
 
     if not data:
         st.success("All tasks completed! 🎉")
@@ -66,9 +63,10 @@ def display_tasks():
             "Subcategories": st.column_config.TextColumn("Subcategories"),
             "Level": st.column_config.TextColumn("Level"),
             "XP": st.column_config.NumberColumn("XP"),
+            "Due Date": st.column_config.TextColumn("Due Date"),
             "Done": st.column_config.CheckboxColumn("Done"),
         },
-        disabled=["Task Name", "Category", "Subcategories", "Level", "XP"],
+        disabled=["Task Name", "Category", "Subcategories", "Level", "XP", "Due Date"],
         hide_index=True,
         key="tasks_data_editor"
     )
@@ -79,6 +77,7 @@ def display_tasks():
             st.session_state.tasks[orig_idx]["done"] = True
             st.session_state.tasks[orig_idx]["completed_date"] = datetime.today().date()
             mark_done(orig_idx)
+
 
     # Show collapsible section
     # done_tasks = [t for t in st.session_state.tasks if t["done"]]

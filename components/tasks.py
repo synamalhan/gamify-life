@@ -1,0 +1,118 @@
+import streamlit as st
+from .constants import CATEGORIES, LEVELS_XP, SUBCATEGORIES_MAP
+
+def init_task_state():
+    if "tasks" not in st.session_state:
+        st.session_state.tasks = []
+    if "xp" not in st.session_state:
+        st.session_state.xp = 0
+    if "coins" not in st.session_state:
+        st.session_state.coins = 0
+
+def calculate_level(xp):
+    return xp // 100 + 1
+
+def add_task(name, category, subcategories, level):
+    task = {
+        "name": name,
+        "category": category,
+        "subcategories": subcategories,
+        "level": level,
+        "xp": LEVELS_XP[level],
+        "done": False
+    }
+    st.session_state.tasks.append(task)
+
+def mark_done(idx):
+    if not st.session_state.tasks[idx]["done"]:
+        st.session_state.tasks[idx]["done"] = True
+        gained_xp = st.session_state.tasks[idx]["xp"]
+        st.session_state.xp += gained_xp
+        st.session_state.coins += gained_xp // 10
+        st.success(f"Task completed! You gained {gained_xp} XP and earned {gained_xp // 10} coins!")
+
+import pandas as pd
+
+def display_tasks():
+    st.header(f"Your Tasks - Level {calculate_level(st.session_state.xp)} | XP: {st.session_state.xp} | Coins: {st.session_state.coins} 🪙")
+
+    if len(st.session_state.tasks) == 0:
+        st.info("No tasks added yet! Use the sidebar to add some.")
+        return
+
+    # Build DataFrame but omit 'Index' column for display
+    data = []
+    for i, task in enumerate(st.session_state.tasks):
+        data.append({
+            "Task Name": task["name"],
+            "Category": task["category"].title(),
+            "Subcategories": ", ".join(task["subcategories"]),
+            "Level": task["level"].capitalize(),
+            "XP": task["xp"],
+            "Done": task["done"],
+            "_idx": i  # hidden index as a normal column with underscore to identify it
+        })
+
+    df = pd.DataFrame(data)
+
+    # Use data_editor, allow editing only on 'Done'
+    edited_df = st.data_editor(
+        df.drop(columns=["_idx"]),  # drop index column so user doesn't see it
+        column_config={
+            "Task Name": st.column_config.TextColumn("Task Name"),
+            "Category": st.column_config.TextColumn("Category"),
+            "Subcategories": st.column_config.TextColumn("Subcategories"),
+            "Level": st.column_config.TextColumn("Level"),
+            "XP": st.column_config.NumberColumn("XP"),
+            "Done": st.column_config.CheckboxColumn("Done", help="Mark task as done"),
+        },
+        disabled=["Task Name", "Category", "Subcategories", "Level", "XP"],  # only Done editable
+        hide_index=True,
+        key="tasks_data_editor"
+    )
+
+    # Now map edited_df back to original tasks by index position
+    for i, row in edited_df.iterrows():
+        orig_idx = i  # assumes order is unchanged
+        if row["Done"] and not st.session_state.tasks[orig_idx]["done"]:
+            mark_done(orig_idx)
+            st.session_state.tasks[orig_idx]["done"] = True
+
+    # Completed tasks collapsible section
+    done_tasks = [t for t in st.session_state.tasks if t["done"]]
+    if done_tasks:
+        st.markdown("<details><summary style='color:#00fff7; cursor:pointer;'>Completed Tasks</summary>", unsafe_allow_html=True)
+        for t in done_tasks:
+            st.markdown(f"- {t['name']} ({t['level'].capitalize()} - {t['xp']} XP)")
+        st.markdown("</details>", unsafe_allow_html=True)
+
+def add_task_form():
+    st.sidebar.header("Add New Task")
+
+    category_options = [
+            f"{cat}" if cat=="COLLEGE" else
+            f"{cat}" if cat=="WORK" else
+            f"{cat}" if cat=="INTERN" else
+            f"{cat}" if cat=="STUDY" else
+            f"{cat}" if cat=="LIFE" else
+            f"{cat}" for cat in CATEGORIES
+        ]
+
+    selected_cat_label = st.sidebar.segmented_control("Category", category_options)
+    selected_category = selected_cat_label
+
+    subcategories = SUBCATEGORIES_MAP.get(selected_category, [])
+    selected_subcategories = st.sidebar.multiselect("Subcategory (select one or more)", subcategories)
+
+    task_name = st.sidebar.text_input("Task Name", max_chars=50)
+
+    level = st.sidebar.selectbox("Level", list(LEVELS_XP.keys()))
+
+    if st.sidebar.button("Add Task"):
+        if not task_name.strip():
+            st.sidebar.warning("Task name cannot be empty!")
+        elif not selected_subcategories:
+            st.sidebar.warning("Select at least one subcategory!")
+        else:
+            add_task(task_name.strip(), selected_category, selected_subcategories, level)
+            st.sidebar.success(f"Task '{task_name}' added under {selected_category} - {', '.join(selected_subcategories)} at {level} level.")

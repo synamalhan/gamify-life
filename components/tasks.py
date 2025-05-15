@@ -11,7 +11,7 @@ def init_task_state(user_id, supabase_client):
 
     # Fetch tasks from DB for the user where done=False
     response = supabase_client.table("tasks").select("*").eq("user_id", user_id).eq("done", False).execute()
-    if response.status_code != 200:
+    if response.error is not None:
         st.error(f"Error fetching tasks: {response.data}")
         st.session_state.tasks = []
     else:

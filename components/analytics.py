@@ -3,7 +3,7 @@ import pandas as pd
 import altair as alt
 from datetime import datetime
 
-def display_analytics():
+def display_analytics(supabase_client, user_id):
     st.header("📊 Productivity Analytics")
 
     # XP thresholds for levels
@@ -16,46 +16,37 @@ def display_analytics():
     }
     LEVEL_ORDER = list(LEVEL_XP_THRESHOLDS.keys())
 
-    # Initialize session state
-    if "total_xp" not in st.session_state:
-        st.session_state.total_xp = 0
-    if "current_level" not in st.session_state:
-        st.session_state.current_level = "Beginner"
-    if "coins" not in st.session_state:
-        st.session_state.coins = 0
-    if "last_recorded_level" not in st.session_state:
-        st.session_state.last_recorded_level = "Beginner"
-
-    tasks = st.session_state.get("tasks", [])
-    if not tasks:
-        st.info("No tasks to analyze yet.")
+    # Fetch tasks done by the user from Supabase
+    response = supabase_client.table("tasks").select("*").eq("user_id", user_id).eq("done", True).execute()
+    if not response or not response.data:
+        st.info("No completed tasks found in the database yet.")
         return
 
-    # Get completed tasks
-    completed_tasks = [
-        {**task, "completed_date": task.get("completed_date", datetime.today().date())}
-        for task in tasks if task["done"]
-    ]
+    done_tasks = response.data
 
-    if not completed_tasks:
-        st.success("No tasks completed yet! Start ticking some off. ✅")
-        return
+    # Convert completed_date strings to date objects if necessary
+    for t in done_tasks:
+        if "completed_date" in t and t["completed_date"]:
+            t["completed_date"] = datetime.strptime(t["completed_date"], "%Y-%m-%d").date()
+        else:
+            t["completed_date"] = datetime.today().date()
 
-    df = pd.DataFrame(completed_tasks)
-    df["completed_date"] = pd.to_datetime(df["completed_date"]).dt.date
+    df = pd.DataFrame(done_tasks)
 
-    # -----------------------------
-    # 🧠 XP & Level Progress Logic
-    # -----------------------------
+    # Calculate total XP and coins based on the tasks from Supabase
     total_xp = df["xp"].sum()
-    st.session_state.total_xp = total_xp
+    total_coins = (df["xp"] // 10).sum()  # 1 coin per 10 XP
 
-    # Determine current level based on XP
-    for i, level in enumerate(LEVEL_ORDER[::-1]):
+    st.session_state.total_xp = total_xp
+    st.session_state.coins = total_coins
+
+    # Determine current level based on total_xp
+    current_level = "Beginner"
+    for level in reversed(LEVEL_ORDER):
         if total_xp >= LEVEL_XP_THRESHOLDS[level]:
             current_level = level
-            st.session_state.current_level = current_level
             break
+    st.session_state.current_level = current_level
 
     # Determine next level and XP range
     current_index = LEVEL_ORDER.index(current_level)
@@ -70,15 +61,14 @@ def display_analytics():
     xp_range = xp_for_next_level - LEVEL_XP_THRESHOLDS[current_level]
     progress_ratio = min(xp_from_current / xp_range, 1.0) if xp_range > 0 else 1.0
 
-    # 🎉 Bonus for leveling up
-    if LEVEL_ORDER.index(current_level) > LEVEL_ORDER.index(st.session_state.last_recorded_level):
-        st.session_state.coins += 50
-        st.success(f"🎉 You reached {current_level} level! Bonus: 50 coins 🪙")
+    # 🎉 Bonus coins for level up
+    if LEVEL_ORDER.index(current_level) > LEVEL_ORDER.index(st.session_state.get("last_recorded_level", "Beginner")):
+        bonus = 50
+        st.session_state.coins += bonus
+        st.success(f"🎉 You reached {current_level} level! Bonus: {bonus} coins 🪙")
         st.session_state.last_recorded_level = current_level
 
-    # -----------------------------
-    # 🎮 Display XP, Level, Coins
-    # -----------------------------
+    # Show progress info
     st.subheader("🎮 Level Progress")
     st.markdown(f"**Level:** {current_level}")
     if next_level:
@@ -88,6 +78,7 @@ def display_analytics():
 
     st.progress(progress_ratio)
     st.info(f"💰 Coins: {st.session_state.coins}")
+
 
     # -----------------------------
     # 1. Bar Chart: Tasks per Level per Day

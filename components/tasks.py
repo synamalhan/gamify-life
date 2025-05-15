@@ -29,7 +29,7 @@ def calculate_level(xp):
 
 
 
-def add_task(name, category, subcategories, level, due_date):
+def add_task(name, category, subcategories, level, due_date, user_id, supabase_client):
     task = {
         "name": name,
         "category": category,

@@ -43,8 +43,8 @@ def add_task(name, category, subcategories, level, due_date, user_id, supabase_c
     }
     response = supabase_client.table("tasks").insert(task).execute()
 
-    if response.error:
-        st.error(f"Failed to add task: {response.error.message}")
+    if not response:
+        st.error(f"Failed to add task: {response}")
     else:
         # Also add locally to session state
         st.session_state.tasks.append(task)

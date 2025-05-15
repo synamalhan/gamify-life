@@ -55,7 +55,7 @@ def mark_done(index):
     task = st.session_state.tasks[index]
     task["done"] = True
     task["completed_date"] = datetime.today().date()
-    st.rerun()
+    # st.rerun()
 
 
 def display_tasks():

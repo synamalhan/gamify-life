@@ -51,14 +51,26 @@ def add_task(name, category, subcategories, level, due_date, user_id, supabase_c
         st.session_state.tasks.append(task)
         # st.success(f"Task '{name}' added successfully!")
 
-def mark_done(index):
+def mark_done(index, supabase_client):
     task = st.session_state.tasks[index]
+    task_id = task.get("id")
+    if not task_id:
+        st.warning("Task ID missing, cannot update task in DB.")
+        return
+    
+    # Update done status in Supabase DB
+    response = supabase_client.table("tasks").update({"done": True, "completed_date": datetime.today().date().isoformat()}).eq("id", task_id).execute()
+
+    if not response or response.status_code != 200:
+        st.error(f"Failed to update task status in DB: {response}")
+        return
+
+    # Update locally in session state
     task["done"] = True
     task["completed_date"] = datetime.today().date()
-    # st.rerun()
 
 
-def display_tasks():
+def display_tasks(supabase_client):
     st.header(f"Your Tasks - Level {calculate_level(st.session_state.xp)} | XP: {st.session_state.xp} | Coins: {st.session_state.coins} 🪙")
 
     if len(st.session_state.tasks) == 0:
@@ -115,7 +127,7 @@ def display_tasks():
         if row["Done"] and not st.session_state.tasks[orig_idx]["done"]:
             st.session_state.tasks[orig_idx]["done"] = True
             st.session_state.tasks[orig_idx]["completed_date"] = datetime.today().date()
-            mark_done(orig_idx)
+            mark_done(orig_idx, supabase_client)
             # st.rerun()
     
 

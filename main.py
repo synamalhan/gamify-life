@@ -76,7 +76,7 @@ def main_app():
     tab1, tab2, tab3= st.tabs(["Tasks", "Rewards", "Analytics"])
 
     with tab1:
-        display_tasks()
+        display_tasks(supabase)
 
     with tab2:
         display_rewards()

@@ -67,9 +67,9 @@ def main_app():
                 elif not selected_subcategories:
                     st.warning("Select at least one subcategory!")
                 else:
-            add_task(task_name.strip(), selected_category, selected_subcategories, task_level, due_date)
-            st.success(f"Task '{task_name.strip()}' added successfully under {selected_category} - {', '.join(selected_subcategories)} at {task_level} level with due date {due_date}.")
-            
+                    add_task(task_name.strip(), selected_category, selected_subcategories, task_level, due_date)
+                    st.success(f"Task '{task_name.strip()}' added successfully under {selected_category} - {', '.join(selected_subcategories)} at {task_level} level with due date {due_date}.")
+
     tab1, tab2, tab3= st.tabs(["Tasks", "Rewards", "Analytics"])
 
     with tab1:

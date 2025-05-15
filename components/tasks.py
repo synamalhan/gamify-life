@@ -37,7 +37,8 @@ def add_task(name, category, subcategories, level, due_date, user_id, supabase_c
         "level": level,
         "xp": LEVELS_XP[level],
         "done": False,
-        "due_date": due_date,  # store the date here (datetime.date)
+        "due_date": due_date.isoformat() if due_date else None,
+# store the date here (datetime.date)
     }
     response = supabase_client.table("tasks").insert(task).execute()
 

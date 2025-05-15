@@ -58,8 +58,9 @@ def main_app():
             selected_subcategories = st.multiselect("Subcategory (select one or more)", subcategories)
             task_name = st.text_input("Task Name", max_chars=50)
             task_level = st.selectbox("Level", list(LEVELS_XP.keys()))
-            due_date = st.date_input("Due Date", value=date.today())
+            due_date = st.date_input("Due Data", value=None)
             submitted = st.form_submit_button("Add Task")
+
 
             if submitted:
                 if not task_name.strip():
@@ -67,8 +68,8 @@ def main_app():
                 elif not selected_subcategories:
                     st.warning("Select at least one subcategory!")
                 else:
-                    add_task(task_name.strip(), selected_category, selected_subcategories, task_level, due_date)
-                    st.success(f"Task '{task_name.strip()}' added successfully under {selected_category} - {', '.join(selected_subcategories)} at {task_level} level with due date {due_date}.")
+                    add_task(task_name.strip(), selected_category, selected_subcategories, task_level)
+                    st.success(f"Task '{task_name.strip()}' added successfully under {selected_category} - {', '.join(selected_subcategories)} at {task_level} level.")
 
     tab1, tab2, tab3= st.tabs(["Tasks", "Rewards", "Analytics"])
 

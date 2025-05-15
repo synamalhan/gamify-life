@@ -61,7 +61,7 @@ def mark_done(index, supabase_client):
     # Update done status in Supabase DB
     response = supabase_client.table("tasks").update({"done": True, "completed_date": datetime.today().date().isoformat()}).eq("id", task_id).execute()
 
-    if not response or response.status_code != 200:
+    if not response:
         st.error(f"Failed to update task status in DB: {response}")
         return
 

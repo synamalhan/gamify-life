@@ -51,6 +51,13 @@ def add_task(name, category, subcategories, level, due_date, user_id, supabase_c
         st.session_state.tasks.append(task)
         # st.success(f"Task '{name}' added successfully!")
 
+def mark_done(task_id):
+    for task in st.session_state.tasks:
+        if task["id"] == task_id:
+            task["done"] = True
+            task["completed_date"] = datetime.today().date()
+            break
+
 def display_tasks():
     st.header(f"Your Tasks - Level {calculate_level(st.session_state.xp)} | XP: {st.session_state.xp} | Coins: {st.session_state.coins} 🪙")
 

@@ -45,7 +45,8 @@ def main_app():
     st.title("🎮 Pixel ToDo Gamifier")
     logout()
 
-    init_task_state()
+    # Load user tasks from DB
+    init_task_state(st.session_state.user.id, supabase)
 
     with st.sidebar:
         st.header("Add New Task")
@@ -58,9 +59,8 @@ def main_app():
             selected_subcategories = st.multiselect("Subcategory (select one or more)", subcategories)
             task_name = st.text_input("Task Name", max_chars=50)
             task_level = st.selectbox("Level", list(LEVELS_XP.keys()))
-            due_date = st.date_input("Due Data", value=None)
+            due_date = st.date_input("Due Date", value=None)
             submitted = st.form_submit_button("Add Task")
-
 
             if submitted:
                 if not task_name.strip():
@@ -68,7 +68,7 @@ def main_app():
                 elif not selected_subcategories:
                     st.warning("Select at least one subcategory!")
                 else:
-                    add_task(task_name.strip(), selected_category, selected_subcategories, task_level)
+                    add_task(task_name.strip(), selected_category, selected_subcategories, task_level, due_date, st.session_state.user.id, supabase)
                     st.success(f"Task '{task_name.strip()}' added successfully under {selected_category} - {', '.join(selected_subcategories)} at {task_level} level.")
 
     tab1, tab2, tab3= st.tabs(["Tasks", "Rewards", "Analytics"])
@@ -81,7 +81,6 @@ def main_app():
 
     with tab3:
         display_analytics()
-
 
     st.markdown("""
     <footer>

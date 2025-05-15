@@ -1,18 +1,33 @@
 import streamlit as st
 from .constants import CATEGORIES, LEVELS_XP, SUBCATEGORIES_MAP
 
-def init_task_state():
-    if "tasks" not in st.session_state:
-        st.session_state.tasks = []
+from datetime import datetime
+
+def init_task_state(user_id, supabase_client):
     if "xp" not in st.session_state:
         st.session_state.xp = 0
     if "coins" not in st.session_state:
         st.session_state.coins = 0
 
+    # Fetch tasks from DB for the user where done=False
+    response = supabase_client.table("tasks").select("*").eq("user_id", user_id).eq("done", False).execute()
+    if response.error:
+        st.error(f"Error fetching tasks: {response.error.message}")
+        st.session_state.tasks = []
+    else:
+        tasks = response.data
+        for task in tasks:
+            if "due_date" in task and task["due_date"]:
+                task["due_date"] = datetime.strptime(task["due_date"], "%Y-%m-%d").date()
+            else:
+                task["due_date"] = None
+        st.session_state.tasks = tasks
+
+
 def calculate_level(xp):
     return xp // 100 + 1
 
-from datetime import datetime
+
 
 def add_task(name, category, subcategories, level, due_date):
     task = {
@@ -24,7 +39,14 @@ def add_task(name, category, subcategories, level, due_date):
         "done": False,
         "due_date": due_date,  # store the date here (datetime.date)
     }
-    st.session_state.tasks.append(task)
+    response = supabase_client.table("tasks").insert(task).execute()
+
+    if response.error:
+        st.error(f"Failed to add task: {response.error.message}")
+    else:
+        # Also add locally to session state
+        st.session_state.tasks.append(task)
+        st.success(f"Task '{name}' added successfully!")
 
 def display_tasks():
     st.header(f"Your Tasks - Level {calculate_level(st.session_state.xp)} | XP: {st.session_state.xp} | Coins: {st.session_state.coins} 🪙")

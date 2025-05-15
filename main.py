@@ -16,6 +16,8 @@ supabase = get_supabase_client()
 
 if "user" not in st.session_state:
     st.session_state.user = None
+    
+from datetime import datetime, date
 
 
 def login():

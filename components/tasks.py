@@ -1,7 +1,7 @@
 import streamlit as st
 from .constants import CATEGORIES, LEVELS_XP, SUBCATEGORIES_MAP
 
-from datetime import datetime
+from datetime import datetime, date
 
 def init_task_state(user_id, supabase_client):
     if "xp" not in st.session_state:
@@ -11,8 +11,8 @@ def init_task_state(user_id, supabase_client):
 
     # Fetch tasks from DB for the user where done=False
     response = supabase_client.table("tasks").select("*").eq("user_id", user_id).eq("done", False).execute()
-    if response.error:
-        st.error(f"Error fetching tasks: {response.error.message}")
+    if response.status_code != 200:
+        st.error(f"Error fetching tasks: {response.data}")
         st.session_state.tasks = []
     else:
         tasks = response.data

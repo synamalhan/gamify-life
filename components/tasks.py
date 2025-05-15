@@ -49,7 +49,7 @@ def add_task(name, category, subcategories, level, due_date, user_id, supabase_c
     else:
         # Also add locally to session state
         st.session_state.tasks.append(task)
-        st.success(f"Task '{name}' added successfully!")
+        # st.success(f"Task '{name}' added successfully!")
 
 def display_tasks():
     st.header(f"Your Tasks - Level {calculate_level(st.session_state.xp)} | XP: {st.session_state.xp} | Coins: {st.session_state.coins} 🪙")
@@ -148,5 +148,10 @@ def add_task_form():
         elif not selected_subcategories:
             st.sidebar.warning("Select at least one subcategory!")
         else:
-            add_task(task_name.strip(), selected_category, selected_subcategories, level)
-            st.sidebar.success(f"Task '{task_name}' added under {selected_category} - {', '.join(selected_subcategories)} at {level} level.")
+            if st.sidebar.button("Add Task"):  # Replace with your actual trigger
+                add_task(task_name.strip(), selected_category, selected_subcategories, level)
+                st.session_state.success_message = (
+                    f"Task '{task_name}' added under {selected_category} - {', '.join(selected_subcategories)} at {level} level."
+                )
+                st.session_state.task_added = True
+                st.rerun()

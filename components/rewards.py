@@ -1,13 +1,7 @@
 # components/rewards.py
 import streamlit as st
+from .constants import REWARDS
 
-REWARDS = {
-    "Coffee Break ☕ (10 coins)": 10,
-    "15 min Game Time 🎮 (20 coins)": 20,
-    "Snack Time 🍪 (30 coins)": 30,
-    "Watch an Episode 📺 (50 coins)": 50,
-    "Buy a Treat 🎁 (100 coins)": 100
-}
 
 def spend_coins(cost):
     if st.session_state.coins >= cost:

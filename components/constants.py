@@ -17,3 +17,11 @@ SUBCATEGORIES_MAP = {
     "LIFE": ["exercise", "chores", "hobbies"],
     "STUDY": ["reading", "practice", "review"]
 }
+
+REWARDS = {
+    "Stardew Valley": 150,
+    "Birth": 100,
+    "Snack Time 🍪 (30 coins)": 30,
+    "Watch an Episode 📺 (50 coins)": 50,
+    "Buy a Treat 🎁 (100 coins)": 100
+}

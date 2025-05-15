@@ -8,7 +8,6 @@ from components.auth import get_supabase_client, sign_in, sign_out
 from components.tasks import init_task_state, add_task, display_tasks
 from components.rewards import display_rewards
 from components.analytics import display_analytics
-from components.pomodoro import display_pomodoro_timer
 from components.constants import CATEGORIES, LEVELS_XP, SUBCATEGORIES_MAP
 
 # st.markdown(inject_custom_css(), unsafe_allow_html=True)
@@ -70,7 +69,7 @@ def main_app():
                     add_task(task_name.strip(), selected_category, selected_subcategories, task_level)
                     st.success(f"Task '{task_name.strip()}' added successfully under {selected_category} - {', '.join(selected_subcategories)} at {task_level} level.")
 
-    tab1, tab2, tab3, tab4 = st.tabs(["Tasks", "Rewards", "Analytics", "Pomodoro"])
+    tab1, tab2, tab3= st.tabs(["Tasks", "Rewards", "Analytics"])
 
     with tab1:
         display_tasks()
@@ -81,8 +80,6 @@ def main_app():
     with tab3:
         display_analytics()
 
-    with tab4:
-        display_pomodoro_timer()
 
     st.markdown("""
     <footer>

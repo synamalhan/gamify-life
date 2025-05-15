@@ -49,22 +49,7 @@ def inject_custom_css():
     p, label, span, li, .stText, .stMarkdown {
         color: #e0e0e0;
     }
-    .stButton > button {
-        background: #ffffff;
-        color: #202020;
-        border-radius: 8px;
-        border: none;
-        padding: 8px;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: none;
-        transition: 0.3s;
-    }
-    .stButton > button:hover {
-        background: #f0f0f0;
-        color: #101010;
-        box-shadow: none;
-    }
+    
     .stTextInput > div > input,
     .stSelectbox > div > div > select {
         background: #202020;

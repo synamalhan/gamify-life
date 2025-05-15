@@ -9,7 +9,7 @@ from components.tasks import init_task_state, add_task, display_tasks
 from components.rewards import display_rewards
 from components.analytics import display_analytics
 from components.constants import CATEGORIES, LEVELS_XP, SUBCATEGORIES_MAP
-
+import pandas as pd
 # st.markdown(inject_custom_css(), unsafe_allow_html=True)
 
 supabase = get_supabase_client()

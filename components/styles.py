@@ -21,8 +21,9 @@ def set_png_as_page_bg(png_file):
     }}
     </style>
 '''
-
-    st.markdown(page_bg_img, unsafe_allow_html=True)
+    if (page_bg_img):
+        st.markdown(page_bg_img, unsafe_allow_html=True)
+   
 
 def inject_custom_css():
     css = """

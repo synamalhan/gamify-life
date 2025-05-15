@@ -40,51 +40,54 @@ def display_tasks():
         st.info("No tasks added yet! Use the sidebar to add some.")
         return
 
-    # Build DataFrame but omit 'Index' column for display
     data = []
     for i, task in enumerate(st.session_state.tasks):
-        data.append({
-            "Task Name": task["name"],
-            "Category": task["category"].title(),
-            "Subcategories": ", ".join(task["subcategories"]),
-            "Level": task["level"].capitalize(),
-            "XP": task["xp"],
-            "Done": task["done"],
-            "_idx": i  # hidden index as a normal column with underscore to identify it
-        })
+        if not task["done"]:
+            data.append({
+                "Task Name": task["name"],
+                "Category": task["category"].title(),
+                "Subcategories": ", ".join(task["subcategories"]),
+                "Level": task["level"].capitalize(),
+                "XP": task["xp"],
+                "Done": task["done"],
+                "_idx": i
+            })
+
+    if not data:
+        st.success("All tasks completed! 🎉")
+        return
 
     df = pd.DataFrame(data)
-
-    # Use data_editor, allow editing only on 'Done'
     edited_df = st.data_editor(
-        df.drop(columns=["_idx"]),  # drop index column so user doesn't see it
+        df.drop(columns=["_idx"]),
         column_config={
             "Task Name": st.column_config.TextColumn("Task Name"),
             "Category": st.column_config.TextColumn("Category"),
             "Subcategories": st.column_config.TextColumn("Subcategories"),
             "Level": st.column_config.TextColumn("Level"),
             "XP": st.column_config.NumberColumn("XP"),
-            "Done": st.column_config.CheckboxColumn("Done", help="Mark task as done"),
+            "Done": st.column_config.CheckboxColumn("Done"),
         },
-        disabled=["Task Name", "Category", "Subcategories", "Level", "XP"],  # only Done editable
+        disabled=["Task Name", "Category", "Subcategories", "Level", "XP"],
         hide_index=True,
         key="tasks_data_editor"
     )
 
-    # Now map edited_df back to original tasks by index position
     for i, row in edited_df.iterrows():
-        orig_idx = i  # assumes order is unchanged
+        orig_idx = df.iloc[i]["_idx"]
         if row["Done"] and not st.session_state.tasks[orig_idx]["done"]:
-            mark_done(orig_idx)
             st.session_state.tasks[orig_idx]["done"] = True
+            st.session_state.tasks[orig_idx]["completed_date"] = datetime.today().date()
+            mark_done(orig_idx)
 
-    # Completed tasks collapsible section
-    done_tasks = [t for t in st.session_state.tasks if t["done"]]
-    if done_tasks:
-        st.markdown("<details><summary style='color:#00fff7; cursor:pointer;'>Completed Tasks</summary>", unsafe_allow_html=True)
-        for t in done_tasks:
-            st.markdown(f"- {t['name']} ({t['level'].capitalize()} - {t['xp']} XP)")
-        st.markdown("</details>", unsafe_allow_html=True)
+    # Show collapsible section
+    # done_tasks = [t for t in st.session_state.tasks if t["done"]]
+    # if done_tasks:
+    #     st.markdown("<details><summary style='color:#00fff7; cursor:pointer;'>Completed Tasks</summary>", unsafe_allow_html=True)
+    #     for t in done_tasks:
+    #         st.markdown(f"- {t['name']} ({t['level'].capitalize()} - {t['xp']} XP)")
+    #     st.markdown("</details>", unsafe_allow_html=True)
+
 
 def add_task_form():
     st.sidebar.header("Add New Task")
